@@ -26,6 +26,7 @@
       <el-table v-loading="loading" :data="userList" @selection-change="handleSelectionChange">
         <el-table-column label="用户名" align="center" prop="userName" />
         <el-table-column label="用户昵称" align="center" prop="nickName" />
+        <el-table-column label="邀请码" align="center" prop="inviteCode" />
         <el-table-column label="用户头像" align="center" prop="headImageThumb" width="100">
           <template #default="scope">
             <image-preview :src="scope.row.headImageThumb" :full-src="scope.row.headImage" :width="50" :height="50" />
@@ -85,6 +86,9 @@
         <el-form-item label="个性签名" prop="signature">
           <el-input v-model="form.signature" />
         </el-form-item>
+        <el-form-item label="邀请码" prop="inviteCode">
+          <el-input v-model="form.inviteCode" />
+        </el-form-item>
         <el-form-item label="最后登录时间" prop="lastLoginTime">
           <el-date-picker clearable v-model="form.lastLoginTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss">
           </el-date-picker>
@@ -139,6 +143,7 @@ const initFormData: UserForm = {
   password: undefined,
   sex: undefined,
   signature: undefined,
+  inviteCode: undefined,
   lastLoginTime: undefined,
   createdTime: undefined,
   type: undefined,

@@ -68,6 +68,15 @@ export interface UserVO {
    */
   reason: string;
 
+  /**
+   * 邀请码
+   */
+  inviteCode: string;
+
+  /**
+   * 邀请人id
+   */
+  inviterId: string | number;
 
 }
 
@@ -136,6 +145,16 @@ export interface UserForm extends BaseEntity {
    * 被封禁原因
    */
   reason?: string;
+
+  /**
+   * 邀请码
+   */
+  inviteCode?: string;
+
+  /**
+   * 邀请人id
+   */
+  inviterId?: string | number;
 
 }
 

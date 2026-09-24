@@ -101,5 +101,15 @@ public class ImUserVo {
     @ExcelProperty(value = "被封禁原因")
     private String reason;
 
+    /**
+     * 邀请码
+     */
+    @ExcelProperty(value = "邀请码")
+    private String inviteCode;
+
+    /**
+     * 邀请人id（注册时使用的邀请码所属用户）
+     */
+    private Long inviterId;
 
 }

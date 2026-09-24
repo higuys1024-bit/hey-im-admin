@@ -83,6 +83,14 @@ public class ImUser implements TransPojo {
      */
     private String reason;
 
+    /**
+     * 邀请码
+     */
+    private String inviteCode;
 
+    /**
+     * 邀请人id（注册时使用的邀请码所属用户）
+     */
+    private Long inviterId;
 
 }

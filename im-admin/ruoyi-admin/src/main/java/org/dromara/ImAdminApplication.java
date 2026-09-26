@@ -17,7 +17,7 @@ public class ImAdminApplication {
         SpringApplication application = new SpringApplication(ImAdminApplication.class);
         application.setApplicationStartup(new BufferingApplicationStartup(2048));
         application.run(args);
-        System.out.println("盒子IM后台管理服务启动成功");
+        System.out.println("嘿IM后台管理服务启动成功");
     }
 
 }

@@ -114,7 +114,7 @@ create table sys_dept (
 -- ----------------------------
 
 
-insert into sys_dept values(100, '000000', 0,   '0',    '盒子科技',   null,0, null, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, sysdate(), null, null);
+insert into sys_dept values(100, '000000', 0,   '0',    '嘿科技',   null,0, null, '15888888888', 'xxx@qq.com', '0', '0', 103, 1, sysdate(), null, null);
 
 
 -- ----------------------------

@@ -8,7 +8,7 @@
     <artifactId>im-admin</artifactId>
     <version>${revision}</version>
     <name>im-admin</name>
-    <description>盒子IM后台管理系统</description>
+    <description>嘿IM后台管理系统</description>
 
     <properties>
         <revision>5.2.3</revision>

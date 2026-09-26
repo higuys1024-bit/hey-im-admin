@@ -103,7 +103,7 @@ public class AuthController {
         Long userId = LoginHelper.getUserId();
         scheduledExecutorService.schedule(() -> {
             WebSocketMessageDto dto = new WebSocketMessageDto();
-            dto.setMessage("欢迎登录盒子IM后台管理系统");
+            dto.setMessage("欢迎登录嘿IM后台管理系统");
             dto.setSessionKeys(List.of(userId));
             WebSocketUtils.publishMessage(dto);
         }, 5, TimeUnit.SECONDS);

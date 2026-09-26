@@ -1,7 +1,7 @@
 # 项目相关配置
 app:
   # 名称
-  name: 盒子IM
+  name: 嘿IM
   # 版本
   version: 3.1
   # 版权年份
@@ -169,7 +169,7 @@ springdoc:
     # 版本
     version: '${app.version}'
     # 描述
-    description: '盒子IM后台管理系统API文档'
+    description: '嘿IM后台管理系统API文档'
   components:
     # 鉴权方式配置
     security-schemes:

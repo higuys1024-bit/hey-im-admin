@@ -33,7 +33,7 @@ defineProps({
   }
 });
 
-const title = ref('盒子IM后台管理');
+const title = ref('嘿IM后台管理');
 const settingsStore = useSettingsStore();
 const sideTheme = computed(() => settingsStore.sideTheme);
 </script>

@@ -70,5 +70,10 @@ public class ImGroup implements TransPojo {
      */
     private String reason;
 
+    /**
+     * 自定义群聊人数(虚拟人数),大于0时生效
+     */
+    private Integer customMemberCount;
+
 
 }

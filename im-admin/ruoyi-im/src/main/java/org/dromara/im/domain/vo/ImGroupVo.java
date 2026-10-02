@@ -98,4 +98,7 @@ public class ImGroupVo implements TransPojo {
 
     @Schema(description = "成员数量")
     private Long memberCount;
+
+    @Schema(description = "自定义群聊人数(虚拟人数)")
+    private Integer customMemberCount;
 }

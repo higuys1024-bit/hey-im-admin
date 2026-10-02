@@ -69,6 +69,11 @@ public class ImGroupBo {
     private String reason;
 
     /**
+     * 自定义群聊人数(虚拟人数)
+     */
+    private Integer customMemberCount;
+
+    /**
      * 请求参数
      */
     private Map<String, Object> params = new HashMap<>();

@@ -72,3 +72,15 @@ export const getTotalGroupCount = (): AxiosPromise<number> => {
   });
 };
 
+/**
+ * 设置群聊人数(虚拟人数)
+ * @param data
+ */
+export const updateCustomMemberCount = (data: { id: string | number; customMemberCount?: number }) => {
+  return request({
+    url: '/im/group/customMemberCount',
+    method: 'put',
+    data: data
+  });
+};
+

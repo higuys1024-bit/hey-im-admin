@@ -18,6 +18,7 @@ import org.dromara.im.constant.ImRedisKey;
 import org.dromara.im.domain.ImGroup;
 import org.dromara.im.domain.bo.ImGroupBo;
 import org.dromara.im.domain.dto.ImGroupBanDto;
+import org.dromara.im.domain.dto.ImGroupCustomCountDto;
 import org.dromara.im.domain.dto.ImGroupUnbanDto;
 import org.dromara.im.domain.vo.ImGroupVo;
 import org.dromara.im.mapper.ImGroupMapper;
@@ -135,6 +136,16 @@ public class ImGroupServiceImpl implements IImGroupService {
     @Override
     public Long getTotalGroupCount() {
         return baseMapper.selectCount(null);
+    }
+
+    @CacheEvict(key = "#dto.getId()")
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void updateCustomMemberCount(ImGroupCustomCountDto dto) {
+        LambdaUpdateWrapper<ImGroup> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(ImGroup::getId, dto.getId());
+        wrapper.set(ImGroup::getCustomMemberCount, dto.getCustomMemberCount() == null ? 0 : dto.getCustomMemberCount());
+        baseMapper.update(wrapper);
     }
 
     private LambdaQueryWrapper<ImGroup> buildQueryWrapper(ImGroupBo bo) {

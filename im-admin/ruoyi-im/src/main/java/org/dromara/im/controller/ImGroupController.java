@@ -17,6 +17,7 @@ import org.dromara.common.web.core.BaseController;
 import org.dromara.im.domain.bo.ImGroupBo;
 import org.dromara.im.domain.bo.ImGroupMemberBo;
 import org.dromara.im.domain.dto.ImGroupBanDto;
+import org.dromara.im.domain.dto.ImGroupCustomCountDto;
 import org.dromara.im.domain.dto.ImGroupUnbanDto;
 import org.dromara.im.domain.vo.ImGroupMemberVo;
 import org.dromara.im.domain.vo.ImGroupVo;
@@ -88,6 +89,14 @@ public class ImGroupController extends BaseController {
     @SaCheckPermission("im:group:ban")
     public void unban(@RequestBody @Valid ImGroupUnbanDto dto) {
         groupService.unban(dto);
+    }
+
+    @Operation(summary = "设置群聊人数")
+    @PutMapping("/customMemberCount")
+    @SaCheckPermission("im:group:query")
+    public R<Void> updateCustomMemberCount(@RequestBody @Valid ImGroupCustomCountDto dto) {
+        groupService.updateCustomMemberCount(dto);
+        return R.ok();
     }
 
     @GetMapping("/findByName")

@@ -37,7 +37,14 @@
           </template>
         </el-table-column>
         <el-table-column label="群主" align="center" prop="ownerUserName" />
-        <el-table-column label="成员数量" align="center" prop="memberCount" />
+        <el-table-column label="成员数量" align="center">
+          <template #default="scope">
+            <span>{{ scope.row.memberCount }}</span>
+            <el-tag v-if="scope.row.customMemberCount && scope.row.customMemberCount > 0" size="small" type="warning" style="margin-left: 6px;">
+              虚拟: {{ scope.row.customMemberCount }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="创建时间" align="center" prop="createdTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.createdTime, '{y}-{m}-{d}') }}</span>
@@ -71,18 +78,18 @@
     </el-card>
     <!-- 添加或修改群对话框 -->
     <el-dialog :title="dialog.title" v-model="dialog.visible" width="800px" append-to-body>
-      <el-form ref="groupFormRef" :model="form" label-width="100px" disabled>
+      <el-form ref="groupFormRef" :model="form" label-width="110px">
         <el-form-item label="群头像" prop="headImage">
           <image-preview :src="form.headImageThumb" :full-src="form.headImage" :width="50" :height="50" />
         </el-form-item>
         <el-form-item label="群名字" prop="name">
-          <el-input v-model="form.name" />
+          <el-input v-model="form.name" disabled />
         </el-form-item>
-        <el-form-item label="群主" prop="name">
-          <el-input v-model="form.ownerUserName" />
+        <el-form-item label="群主" prop="ownerUserName">
+          <el-input v-model="form.ownerUserName" disabled />
         </el-form-item>
         <el-form-item label="创建时间" prop="createdTime">
-          <el-date-picker clearable v-model="form.createdTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss">
+          <el-date-picker disabled clearable v-model="form.createdTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="是否已解散" prop="dissolve">
@@ -92,14 +99,19 @@
           <dict-tag :options="im_bool" :value="form.isBanned" />
         </el-form-item>
         <el-form-item v-if="form.isBanned" label="被封禁原因" prop="reason">
-          <el-input v-model="form.reason" />
+          <el-input v-model="form.reason" disabled />
+        </el-form-item>
+        <el-form-item label="群聊人数设置" prop="customMemberCount">
+          <el-input-number v-model="form.customMemberCount" :min="0" :max="999999" placeholder="不设置则展示真实人数" style="width: 200px;" />
+          <span style="margin-left: 12px; color: #909399; font-size: 13px;">设置为0或留空表示展示真实群人数，设置大于0则在双端展示该虚拟人数</span>
         </el-form-item>
         <el-form-item v-if="form.notice" label="群公告" prop="notice">
-          <el-input type="textarea" v-model="form.notice"></el-input>
+          <el-input type="textarea" v-model="form.notice" disabled></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
+          <el-button @click="dialog.visible = false">取 消</el-button>
           <el-button :loading="buttonLoading" type="primary" @click="submitForm">确 定</el-button>
         </div>
       </template>
@@ -112,7 +124,7 @@
 </template>
 
 <script setup name="Group" lang="ts">
-import { listGroup, getGroup, ban, unban } from '@/api/im/group';
+import { listGroup, getGroup, ban, unban, updateCustomMemberCount } from '@/api/im/group';
 import { GroupVO, GroupQuery, GroupForm } from '@/api/im/group/types';
 import member from './member.vue';
 
@@ -148,7 +160,8 @@ const initFormData: GroupForm = {
   dissolve: undefined,
   createdTime: undefined,
   isBanned: undefined,
-  reason: undefined
+  reason: undefined,
+  customMemberCount: undefined
 }
 const data = reactive<PageData<GroupForm, GroupQuery>>({
   form: { ...initFormData },
@@ -219,7 +232,7 @@ const handleDetail = async (row?: GroupVO) => {
   const res = await getGroup(_id);
   Object.assign(form.value, res.data);
   dialog.visible = true;
-  dialog.title = "用户信息";
+  dialog.title = "群聊详情";
 }
 
 const handleBan = (group: any) => {
@@ -256,8 +269,23 @@ const handleShowMember = (id: number) => {
 }
 
 /** 提交按钮 */
-const submitForm = () => {
-  dialog.visible = false;
+const submitForm = async () => {
+  if (form.value.id) {
+    buttonLoading.value = true;
+    try {
+      await updateCustomMemberCount({
+        id: form.value.id,
+        customMemberCount: form.value.customMemberCount || 0
+      });
+      ElMessage.success("群聊人数设置成功");
+      dialog.visible = false;
+      getList();
+    } finally {
+      buttonLoading.value = false;
+    }
+  } else {
+    dialog.visible = false;
+  }
 }
 
 /** 导出按钮操作 */

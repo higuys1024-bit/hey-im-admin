@@ -57,6 +57,11 @@ export interface GroupVO {
    */
   memberCount: number;
 
+  /**
+   * 自定义群聊人数(虚拟人数)
+   */
+  customMemberCount?: number;
+
 }
 
 export interface GroupForm extends BaseEntity {
@@ -113,6 +118,11 @@ export interface GroupForm extends BaseEntity {
    * 被封禁原因
    */
   reason?: string;
+
+  /**
+   * 自定义群聊人数(虚拟人数)
+   */
+  customMemberCount?: number;
 
 }
 

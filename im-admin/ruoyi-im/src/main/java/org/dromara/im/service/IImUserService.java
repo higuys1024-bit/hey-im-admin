@@ -4,6 +4,7 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.im.domain.bo.ImUserBo;
 import org.dromara.im.domain.dto.ImUserBanDto;
+import org.dromara.im.domain.dto.ImUserResetPwdDto;
 import org.dromara.im.domain.dto.ImUserUnbanDto;
 import org.dromara.im.domain.vo.ImUserVo;
 
@@ -56,6 +57,13 @@ public interface IImUserService {
      * @param dto dto
      */
     void unban(ImUserUnbanDto dto);
+
+    /**
+     * 重置用户登录密码
+     *
+     * @param dto dto
+     */
+    void resetPassword(ImUserResetPwdDto dto);
 
     /**
      * 根据用户名查找

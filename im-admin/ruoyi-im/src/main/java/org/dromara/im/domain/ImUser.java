@@ -64,6 +64,11 @@ public class ImUser implements TransPojo {
     private Date lastLoginTime;
 
     /**
+     * 最后登录IP（用于解析用户所在地址）
+     */
+    private String lastLoginIp;
+
+    /**
      * 创建时间
      */
     private Date createdTime;

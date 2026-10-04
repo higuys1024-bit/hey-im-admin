@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { UserVO, UserBanDTO, UserUnbanDTO, UserQuery } from '@/api/im/user/types';
+import { UserVO, UserBanDTO, UserUnbanDTO, UserResetPwdDTO, UserQuery } from '@/api/im/user/types';
 
 /**
  * 查询用户列表
@@ -48,6 +48,19 @@ export const ban = (data: UserBanDTO) => {
 export const unban = (data: UserUnbanDTO) => {
   return request({
     url: '/im/user/unban',
+    method: 'put',
+    data: data
+  });
+};
+
+
+/**
+ * 重置用户登录密码
+ * @param data
+ */
+export const resetUserPwd = (data: UserResetPwdDTO) => {
+  return request({
+    url: '/im/user/resetPwd',
     method: 'put',
     data: data
   });

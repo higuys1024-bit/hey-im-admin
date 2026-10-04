@@ -1,5 +1,6 @@
 package org.dromara.im.service.impl;
 
+import cn.dev33.satoken.secure.BCrypt;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.ip.RegionUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.im.constant.ImConstant;
@@ -17,6 +19,7 @@ import org.dromara.im.constant.ImRedisKey;
 import org.dromara.im.domain.ImUser;
 import org.dromara.im.domain.bo.ImUserBo;
 import org.dromara.im.domain.dto.ImUserBanDto;
+import org.dromara.im.domain.dto.ImUserResetPwdDto;
 import org.dromara.im.domain.dto.ImUserUnbanDto;
 import org.dromara.im.domain.vo.ImUserVo;
 import org.dromara.im.mapper.ImUserMapper;
@@ -50,7 +53,18 @@ public class ImUserServiceImpl implements IImUserService {
      */
     @Override
     public ImUserVo queryById(Long id){
-        return baseMapper.selectVoById(id);
+        ImUserVo vo = baseMapper.selectVoById(id);
+        fillLocation(vo);
+        return vo;
+    }
+
+    /**
+     * 根据最后登录IP离线解析用户所在地址，填充到VO的location字段
+     */
+    private void fillLocation(ImUserVo vo) {
+        if (vo != null && StringUtils.isNotBlank(vo.getLastLoginIp())) {
+            vo.setLocation(RegionUtils.getCityInfo(vo.getLastLoginIp()));
+        }
     }
 
     /**
@@ -64,6 +78,9 @@ public class ImUserServiceImpl implements IImUserService {
     public TableDataInfo<ImUserVo> queryPageList(ImUserBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<ImUser> wrapper = buildQueryWrapper(bo);
         Page<ImUserVo> result = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+        if (result.getRecords() != null) {
+            result.getRecords().forEach(this::fillLocation);
+        }
         return TableDataInfo.build(result);
     }
 
@@ -76,7 +93,9 @@ public class ImUserServiceImpl implements IImUserService {
     @Override
     public List<ImUserVo> queryList(ImUserBo bo) {
         LambdaQueryWrapper<ImUser> wrapper = buildQueryWrapper(bo);
-        return baseMapper.selectVoList(wrapper);
+        List<ImUserVo> list = baseMapper.selectVoList(wrapper);
+        list.forEach(this::fillLocation);
+        return list;
     }
 
 
@@ -97,6 +116,16 @@ public class ImUserServiceImpl implements IImUserService {
         wrapper.eq(ImUser::getId, dto.getId());
         wrapper.set(ImUser::getIsBanned, false);
         wrapper.set(ImUser::getReason, Strings.EMPTY);
+        baseMapper.update(wrapper);
+    }
+
+    @Override
+    public void resetPassword(ImUserResetPwdDto dto) {
+        // im_user中密码采用BCrypt存储（与im-platform的BCryptPasswordEncoder一致），这里使用相同算法加密
+        String encrypted = BCrypt.hashpw(dto.getPassword());
+        LambdaUpdateWrapper<ImUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(ImUser::getId, dto.getId());
+        wrapper.set(ImUser::getPassword, encrypted);
         baseMapper.update(wrapper);
     }
 

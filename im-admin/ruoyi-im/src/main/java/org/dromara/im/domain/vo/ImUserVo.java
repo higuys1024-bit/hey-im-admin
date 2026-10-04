@@ -78,6 +78,17 @@ public class ImUserVo {
     private Date lastLoginTime;
 
     /**
+     * 最后登录IP
+     */
+    private String lastLoginIp;
+
+    /**
+     * 地址（由最后登录IP离线解析得到，不对应数据库字段）
+     */
+    @ExcelProperty(value = "地址")
+    private String location;
+
+    /**
      * 创建时间
      */
     @ExcelProperty(value = "创建时间")

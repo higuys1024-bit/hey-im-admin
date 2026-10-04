@@ -336,6 +336,12 @@ insert into sys_menu values('4', '用户管理', '0', '1', 'im/user',           
 insert into sys_menu values('4001', '用户查询', '4', '1',  '#', '', '', 1, 0, 'F', '0', '0', 'im:user:query',        '#', 103, 1, sysdate(), null, null, '');
 insert into sys_menu values('4002', '用户封禁', '4', '2',  '#', '', '', 1, 0, 'F', '0', '0', 'im:user:ban',          '#', 103, 1, sysdate(), null, null, '');
 insert into sys_menu values('4003', '用户导出', '4', '3',  '#', '', '', 1, 0, 'F', '0', '0', 'im:user:export',         '#', 103, 1, sysdate(), null, null, '');
+insert into sys_menu values('4004', '重置登录密码', '4', '4',  '#', '', '', 1, 0, 'F', '0', '0', 'im:user:resetPwd',     '#', 103, 1, sysdate(), null, null, '');
+-- 授权：超级管理员(superadmin)默认拥有全部权限无需授权；此处把"重置登录密码"按钮授予所有已拥有"用户封禁"(4002)权限的非超管角色，可重复执行
+insert into sys_role_menu (role_id, menu_id)
+select rm.role_id, 4004 from sys_role_menu rm
+where rm.menu_id = 4002
+  and not exists (select 1 from sys_role_menu t where t.role_id = rm.role_id and t.menu_id = 4004);
 
 -- IM-群聊管理
 insert into sys_menu values('5', '群聊管理', '0', '2', 'im/group',          'im/group/index', '', 1, 0, 'C', '0', '0', 'im:group:list', 'peoples',     103, 1, sysdate(), null, null, 'IM群聊管理');

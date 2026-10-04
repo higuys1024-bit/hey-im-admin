@@ -49,6 +49,16 @@ export interface UserVO {
   lastLoginTime: string;
 
   /**
+   * 最后登录IP
+   */
+  lastLoginIp: string;
+
+  /**
+   * 地址（由最后登录IP离线解析得到）
+   */
+  location: string;
+
+  /**
    * 创建时间
    */
   createdTime: string;
@@ -127,6 +137,11 @@ export interface UserForm extends BaseEntity {
   lastLoginTime?: string;
 
   /**
+   * 地址（由最后登录IP离线解析得到）
+   */
+  location?: string;
+
+  /**
    * 创建时间
    */
   createdTime?: string;
@@ -199,6 +214,20 @@ export interface UserUnbanDTO {
    * id
    */
   id?: string | number;
+}
+
+
+export interface UserResetPwdDTO {
+
+  /**
+   * id
+   */
+  id?: string | number;
+
+  /**
+   * 新登录密码
+   */
+  password?: string;
 }
 
 

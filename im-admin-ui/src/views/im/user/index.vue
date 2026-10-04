@@ -47,6 +47,11 @@
             <span>{{ parseTime(scope.row.createdTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="地址" align="center" prop="location" min-width="140" show-overflow-tooltip>
+          <template #default="scope">
+            <span>{{ scope.row.location || '未知' }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="最后登录时间" align="center" prop="lastLoginTime" width="180">
           <template #default="scope">
             <span>{{ parseTime(scope.row.lastLoginTime, '{y}-{m}-{d}') }}</span>
@@ -97,6 +102,9 @@
           <el-date-picker clearable v-model="form.createdTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss">
           </el-date-picker>
         </el-form-item>
+        <el-form-item label="地址" prop="location">
+          <el-input v-model="form.location" />
+        </el-form-item>
         <el-form-item label="是否被封禁" prop="isBanned">
           <dict-tag :options="im_bool" :value="form.isBanned" />
         </el-form-item>
@@ -106,6 +114,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
+          <el-button type="warning" plain v-hasPermi="['im:user:resetPwd']"
+            @click="resetPwdHandle">重置登录密码</el-button>
           <el-button type="primary" @click="submitForm">确 定</el-button>
         </div>
       </template>
@@ -114,7 +124,7 @@
 </template>
 
 <script setup name="User" lang="ts">
-import { listUser, getUser, ban, unban } from '@/api/im/user';
+import { listUser, getUser, ban, unban, resetUserPwd } from '@/api/im/user';
 import { UserVO, UserQuery, UserForm } from '@/api/im/user/types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -145,6 +155,7 @@ const initFormData: UserForm = {
   signature: undefined,
   inviteCode: undefined,
   lastLoginTime: undefined,
+  location: undefined,
   createdTime: undefined,
   type: undefined,
   isBanned: undefined,
@@ -218,6 +229,21 @@ const handleDetail = async (row?: UserVO) => {
 /** 提交按钮 */
 const submitForm = () => {
   dialog.visible = false;
+}
+
+/** 重置用户登录密码 */
+const resetPwdHandle = () => {
+  ElMessageBox.prompt(`请输入用户'${form.value.userName}'的新登录密码:`, '重置登录密码', {
+    inputPattern: /^.{6,20}$/,
+    inputErrorMessage: '密码长度必须在6-20位之间',
+    inputType: 'password',
+    confirmButtonText: '确定',
+    cancelButtonText: '取消'
+  }).then(({ value }) => {
+    resetUserPwd({ id: form.value.id, password: value }).then(() => {
+      ElMessage.success(`用户'${form.value.userName}'登录密码重置成功`);
+    })
+  })
 }
 
 const banHandle = (user: any) => {

@@ -123,4 +123,14 @@ public class ImUserVo {
      */
     private Long inviterId;
 
+    /**
+     * 上级（邀请人）账号，非数据库字段，查询详情时根据inviterId填充
+     */
+    private String inviterUserName;
+
+    /**
+     * 上级（邀请人）姓名/昵称，非数据库字段，查询详情时根据inviterId填充
+     */
+    private String inviterNickName;
+
 }

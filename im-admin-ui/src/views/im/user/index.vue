@@ -11,6 +11,9 @@
             <el-form-item label="用户昵称" prop="nickName">
               <el-input v-model="queryParams.nickName" placeholder="请输入用户昵称" clearable @keyup.enter="handleQuery" />
             </el-form-item>
+            <el-form-item label="邀请码" prop="inviteCode">
+              <el-input v-model="queryParams.inviteCode" placeholder="请输入邀请码" clearable @keyup.enter="handleQuery" />
+            </el-form-item>
             <el-form-item>
               <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
               <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -61,6 +64,8 @@
           <template #default="scope">
             <el-button link type="primary" v-hasPermi="['im:user:query']"
               @click="handleDetail(scope.row)">详情</el-button>
+            <el-button link type="success" v-hasPermi="['im:user:query']"
+              @click="handleSubordinates(scope.row)">下级查询</el-button>
             <el-button v-if="scope.row.isBanned" link type="danger" v-hasPermi="['im:user:ban']"
               @click="unbanHandle(scope.row)">解封</el-button>
             <el-button v-else link type="danger" v-hasPermi="['im:user:ban']"
@@ -94,6 +99,9 @@
         <el-form-item label="邀请码" prop="inviteCode">
           <el-input v-model="form.inviteCode" />
         </el-form-item>
+        <el-form-item label="上级信息" prop="inviterUserName">
+          <el-input :model-value="inviterDisplay" placeholder="无上级（直接注册或根邀请码）" />
+        </el-form-item>
         <el-form-item label="最后登录时间" prop="lastLoginTime">
           <el-date-picker clearable v-model="form.lastLoginTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss">
           </el-date-picker>
@@ -120,12 +128,27 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 下级查询对话框 -->
+    <el-dialog :title="subDialog.title" v-model="subDialog.visible" width="800px" append-to-body>
+      <el-table v-loading="subLoading" :data="subList" max-height="500">
+        <el-table-column label="账号" align="center" prop="userName" />
+        <el-table-column label="姓名" align="center" prop="nickName" />
+        <el-table-column label="注册时间" align="center" prop="createdTime" width="180">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.createdTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="下级人数" align="center" prop="subordinateCount" width="100" />
+      </el-table>
+      <el-empty v-if="!subLoading && subList.length === 0" description="该用户暂无下级" />
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="User" lang="ts">
-import { listUser, getUser, ban, unban, resetUserPwd } from '@/api/im/user';
-import { UserVO, UserQuery, UserForm } from '@/api/im/user/types';
+import { listUser, getUser, ban, unban, resetUserPwd, getSubordinates } from '@/api/im/user';
+import { UserVO, UserQuery, UserForm, SubordinateVO } from '@/api/im/user/types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -154,6 +177,8 @@ const initFormData: UserForm = {
   sex: undefined,
   signature: undefined,
   inviteCode: undefined,
+  inviterUserName: undefined,
+  inviterNickName: undefined,
   lastLoginTime: undefined,
   location: undefined,
   createdTime: undefined,
@@ -168,6 +193,7 @@ const data = reactive<PageData<UserForm, UserQuery>>({
     pageSize: 10,
     userName: undefined,
     nickName: undefined,
+    inviteCode: undefined,
     params: {
     }
   },
@@ -177,6 +203,17 @@ const { queryParams, form, rules } = toRefs(data);
 
 const { im_bool } = toRefs<any>(proxy?.useDict('im_bool'));
 const { sys_user_sex } = toRefs<any>(proxy?.useDict('sys_user_sex'));
+
+// 上级信息展示：账号(姓名)
+const inviterDisplay = computed(() => {
+  if (!form.value.inviterUserName) return '';
+  return `${form.value.inviterUserName}（${form.value.inviterNickName || '未设置昵称'}）`;
+});
+
+// 下级查询对话框
+const subDialog = reactive<DialogOption>({ visible: false, title: '' });
+const subLoading = ref(false);
+const subList = ref<SubordinateVO[]>([]);
 
 /** 查询用户列表 */
 const getList = async () => {
@@ -229,6 +266,20 @@ const handleDetail = async (row?: UserVO) => {
 /** 提交按钮 */
 const submitForm = () => {
   dialog.visible = false;
+}
+
+/** 下级查询 */
+const handleSubordinates = async (row: UserVO) => {
+  subDialog.visible = true;
+  subDialog.title = `「${row.nickName || row.userName}」的下级用户`;
+  subList.value = [];
+  subLoading.value = true;
+  try {
+    const res = await getSubordinates(row.id);
+    subList.value = res.data || [];
+  } finally {
+    subLoading.value = false;
+  }
 }
 
 /** 重置用户登录密码 */

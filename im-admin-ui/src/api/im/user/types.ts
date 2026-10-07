@@ -88,6 +88,16 @@ export interface UserVO {
    */
   inviterId: string | number;
 
+  /**
+   * 上级（邀请人）账号
+   */
+  inviterUserName: string;
+
+  /**
+   * 上级（邀请人）姓名
+   */
+  inviterNickName: string;
+
 }
 
 export interface UserForm extends BaseEntity {
@@ -171,6 +181,16 @@ export interface UserForm extends BaseEntity {
    */
   inviterId?: string | number;
 
+  /**
+   * 上级（邀请人）账号
+   */
+  inviterUserName?: string;
+
+  /**
+   * 上级（邀请人）姓名
+   */
+  inviterNickName?: string;
+
 }
 
 export interface UserQuery extends PageQuery {
@@ -184,6 +204,11 @@ export interface UserQuery extends PageQuery {
    * 用户昵称
    */
   nickName?: string;
+
+  /**
+   * 邀请码
+   */
+  inviteCode?: string;
   /**
    * 创建时间
    */
@@ -192,6 +217,33 @@ export interface UserQuery extends PageQuery {
   * 日期范围参数
   */
   params?: any;
+}
+
+export interface SubordinateVO {
+  /**
+   * 用户id
+   */
+  id: string | number;
+
+  /**
+   * 账号
+   */
+  userName: string;
+
+  /**
+   * 姓名
+   */
+  nickName: string;
+
+  /**
+   * 注册时间
+   */
+  createdTime: string;
+
+  /**
+   * 下级人数
+   */
+  subordinateCount: number;
 }
 
 export interface UserBanDTO {

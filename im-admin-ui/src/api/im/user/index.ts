@@ -1,6 +1,6 @@
 import request from '@/utils/request';
 import { AxiosPromise } from 'axios';
-import { UserVO, UserBanDTO, UserUnbanDTO, UserResetPwdDTO, UserQuery } from '@/api/im/user/types';
+import { UserVO, UserBanDTO, UserUnbanDTO, UserResetPwdDTO, UserQuery, SubordinateVO } from '@/api/im/user/types';
 
 /**
  * 查询用户列表
@@ -63,6 +63,19 @@ export const resetUserPwd = (data: UserResetPwdDTO) => {
     url: '/im/user/resetPwd',
     method: 'put',
     data: data
+  });
+};
+
+
+/**
+ * 查询用户的下级列表
+ * @param userId 上级用户id
+ */
+export const getSubordinates = (userId: string | number): AxiosPromise<SubordinateVO[]> => {
+  return request({
+    url: '/im/user/subordinates',
+    method: 'get',
+    params: { userId }
   });
 };
 

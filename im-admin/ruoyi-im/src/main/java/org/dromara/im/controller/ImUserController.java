@@ -17,6 +17,7 @@ import org.dromara.im.domain.bo.ImUserBo;
 import org.dromara.im.domain.dto.ImUserBanDto;
 import org.dromara.im.domain.dto.ImUserResetPwdDto;
 import org.dromara.im.domain.dto.ImUserUnbanDto;
+import org.dromara.im.domain.vo.ImUserSubordinateVo;
 import org.dromara.im.domain.vo.ImUserVo;
 import org.dromara.im.service.IImUserService;
 import org.dromara.im.util.CommaTextUtils;
@@ -95,6 +96,13 @@ public class ImUserController extends BaseController {
     public R<Void> resetPwd(@RequestBody @Valid ImUserResetPwdDto dto){
         userService.resetPassword(dto);
         return R.ok();
+    }
+
+    @Operation(summary = "查询用户的下级列表", description = "返回指定用户的所有直接下级用户：账号+姓名+注册时间+下级人数")
+    @GetMapping("/subordinates")
+    @SaCheckPermission("im:user:query")
+    public R<List<ImUserSubordinateVo>> subordinates(@NotNull(message = "用户id不能为空") @RequestParam Long userId){
+        return R.ok(userService.querySubordinates(userId));
     }
 
     @GetMapping("/findByName")

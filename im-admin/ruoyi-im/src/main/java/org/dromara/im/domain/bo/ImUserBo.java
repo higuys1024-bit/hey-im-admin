@@ -81,4 +81,9 @@ public class ImUserBo {
      */
     private String reason;
 
+    /**
+     * 邀请码（用于按邀请码搜索用户）
+     */
+    private String inviteCode;
+
 }

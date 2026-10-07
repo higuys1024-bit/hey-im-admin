@@ -66,6 +66,14 @@ public interface IImUserService {
     void resetPassword(ImUserResetPwdDto dto);
 
     /**
+     * 查询指定用户的直接下级用户列表（含每个下级自身的下级人数）
+     *
+     * @param userId 上级用户id
+     * @return 下级用户列表
+     */
+    List<org.dromara.im.domain.vo.ImUserSubordinateVo> querySubordinates(Long userId);
+
+    /**
      * 根据用户名查找
      *
      * @param name 用户名

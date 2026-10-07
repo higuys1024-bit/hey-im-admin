@@ -88,6 +88,18 @@ export const findUserByName = (name?: String): AxiosPromise<UserVO[]> => {
 };
 
 /**
+ * 根据id列表查找用户（后端入参为逗号分隔的id字符串）
+ * @param ids 用户id数组
+ */
+export const findUserByIds = (ids: Array<string | number>): AxiosPromise<UserVO[]> => {
+  return request({
+    url: '/im/user/findByIds',
+    method: 'get',
+    params: { ids: ids.join(',') }
+  });
+};
+
+/**
  * 按天统计用户注册数量
  * @param days 统计天数
  */

@@ -209,6 +209,16 @@ export const deptTreeSelect = (): AxiosPromise<DeptVO[]> => {
   });
 };
 
+/**
+ * 重置用户 MFA 密钥
+ */
+export const resetMfa = (userId: string | number): AxiosPromise<string> => {
+  return request({
+    url: '/system/user/resetMfa/' + userId,
+    method: 'put'
+  });
+};
+
 export default {
   listUser,
   getUser,
@@ -217,6 +227,7 @@ export default {
   updateUser,
   delUser,
   resetUserPwd,
+  resetMfa,
   changeUserStatus,
   getUserProfile,
   updateUserProfile,

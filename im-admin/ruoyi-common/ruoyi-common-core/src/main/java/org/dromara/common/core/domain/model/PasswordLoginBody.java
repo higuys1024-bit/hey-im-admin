@@ -30,4 +30,9 @@ public class PasswordLoginBody extends LoginBody {
     @Length(min = PASSWORD_MIN_LENGTH, max = PASSWORD_MAX_LENGTH, message = "{user.password.length.valid}")
     private String password;
 
+    /**
+     * MFA动态验证码(Google Authenticator)
+     */
+    private String mfaCode;
+
 }

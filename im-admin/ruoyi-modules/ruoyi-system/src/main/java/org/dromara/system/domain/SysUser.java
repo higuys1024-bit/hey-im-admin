@@ -104,6 +104,11 @@ public class SysUser extends TenantEntity implements TransPojo {
      */
     private String remark;
 
+    /**
+     * MFA密钥
+     */
+    private String mfaSecret;
+
 
     public SysUser(Long userId) {
         this.userId = userId;

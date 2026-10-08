@@ -18,7 +18,7 @@
         </if>
         <if test="ew.getSqlSelect == null">
             u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex,
-            u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark
+            u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, u.mfa_secret
         </if>
         from sys_user u
         ${ew.getCustomSqlSegment}
@@ -31,7 +31,7 @@
         </if>
         <if test="ew.getSqlSelect == null">
             u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex,
-            u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark
+            u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, u.mfa_secret
         </if>
         from sys_user u
         ${ew.getCustomSqlSegment}

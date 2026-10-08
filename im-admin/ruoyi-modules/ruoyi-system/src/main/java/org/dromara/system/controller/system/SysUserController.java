@@ -248,6 +248,18 @@ public class SysUserController extends BaseController {
     }
 
     /**
+     * 重置MFA密钥
+     */
+    @SaCheckPermission("system:user:edit")
+    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/resetMfa/{userId}")
+    public R<String> resetMfa(@PathVariable Long userId) {
+        userService.checkUserAllowed(userId);
+        userService.checkUserDataScope(userId);
+        return R.ok("重置MFA密钥成功", userService.resetMfaSecret(userId));
+    }
+
+    /**
      * 根据用户编号获取授权角色
      *
      * @param userId 用户ID

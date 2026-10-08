@@ -110,7 +110,19 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="操作" fixed="right" width="180" class-name="small-padding fixed-width">
+            <el-table-column v-if="columns[7].visible" label="MFA密钥" align="center" prop="mfaSecret" min-width="170">
+              <template #default="scope">
+                <div v-if="scope.row.mfaSecret" style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                  <el-tag size="small" type="info" style="font-family: monospace;">{{ scope.row.mfaSecret }}</el-tag>
+                  <el-tooltip content="复制MFA密钥提供给对应人员" placement="top">
+                    <el-button link type="primary" icon="DocumentCopy" @click="handleCopyMfa(scope.row.mfaSecret)"></el-button>
+                  </el-tooltip>
+                </div>
+                <span v-else style="color: #999;">未配置</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="操作" fixed="right" width="210" class-name="small-padding fixed-width">
               <template #default="scope">
                 <el-tooltip v-if="scope.row.userId !== 1" content="修改" placement="top">
                   <el-button v-hasPermi="['system:user:edit']" link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
@@ -125,6 +137,10 @@
 
                 <el-tooltip v-if="scope.row.userId !== 1" content="分配角色" placement="top">
                   <el-button v-hasPermi="['system:user:edit']" link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)"></el-button>
+                </el-tooltip>
+
+                <el-tooltip content="重置MFA密钥" placement="top">
+                  <el-button v-hasPermi="['system:user:edit']" link type="warning" icon="Refresh" @click="handleResetMfa(scope.row)"></el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -334,7 +350,8 @@ const columns = ref<FieldOption[]>([
   { key: 3, label: `部门`, visible: true, children: [] },
   { key: 4, label: `手机号码`, visible: true, children: [] },
   { key: 5, label: `状态`, visible: true, children: [] },
-  { key: 6, label: `创建时间`, visible: true, children: [] }
+  { key: 6, label: `创建时间`, visible: true, children: [] },
+  { key: 7, label: `MFA密钥`, visible: true, children: [] }
 ]);
 
 const deptTreeRef = ref<ElTreeInstance>();
@@ -514,6 +531,37 @@ const handleResetPwd = async (row: UserVO) => {
   if (!err && res) {
     await api.resetUserPwd(row.userId, res.value);
     proxy?.$modal.msgSuccess('修改成功，新密码是：' + res.value);
+  }
+};
+
+/** 复制 MFA 密钥提供给对应人员 */
+const handleCopyMfa = (text: string) => {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    proxy?.$modal.msgSuccess('MFA密钥已复制到剪贴板，可提供给对应人员绑定Google验证器');
+  }).catch(() => {
+    proxy?.$modal.msgError('复制失败，请手动选中文本复制');
+  });
+};
+
+/** 重置 MFA 密钥 */
+const handleResetMfa = async (row: UserVO) => {
+  const [err] = await to(
+    ElMessageBox.confirm('确定要重置用户"' + row.userName + '"的 MFA 密钥吗？重置后原Google验证器将失效！', '警告', {
+      confirmButtonText: '确定重置',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  );
+  if (!err) {
+    const res = await api.resetMfa(row.userId);
+    const newSecret = res.data;
+    await ElMessageBox.alert(
+      `<div>重置成功！新 MFA 密钥为：</div><div style="font-size: 16px; font-weight: bold; color: #409EFF; margin: 10px 0; word-break: break-all;">${newSecret}</div><div>请复制并提供给该人员重新在 Google Authenticator 绑定。</div>`,
+      'MFA 密钥已重置',
+      { dangerouslyUseHTMLString: true }
+    );
+    getList();
   }
 };
 

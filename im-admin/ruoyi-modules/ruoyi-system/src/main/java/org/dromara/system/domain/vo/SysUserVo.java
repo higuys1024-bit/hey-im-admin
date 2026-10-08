@@ -138,4 +138,9 @@ public class SysUserVo implements Serializable {
      */
     private Long roleId;
 
+    /**
+     * MFA密钥
+     */
+    private String mfaSecret;
+
 }

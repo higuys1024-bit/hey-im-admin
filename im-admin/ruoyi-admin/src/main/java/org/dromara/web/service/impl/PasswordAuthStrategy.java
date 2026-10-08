@@ -13,12 +13,14 @@ import org.dromara.common.core.domain.model.LoginUser;
 import org.dromara.common.core.domain.model.PasswordLoginBody;
 import org.dromara.common.core.enums.LoginType;
 import org.dromara.common.core.enums.UserStatus;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.exception.user.CaptchaException;
 import org.dromara.common.core.exception.user.CaptchaExpireException;
 import org.dromara.common.core.exception.user.UserException;
 import org.dromara.common.core.utils.MessageUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.utils.ValidatorUtils;
+import org.dromara.common.core.utils.mfa.MfaUtils;
 import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.redis.utils.RedisUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
@@ -65,6 +67,8 @@ public class PasswordAuthStrategy implements IAuthStrategy {
         LoginUser loginUser = TenantHelper.dynamic(tenantId, () -> {
             SysUserVo user = loadUserByUsername(username);
             loginService.checkLogin(LoginType.PASSWORD, tenantId, username, () -> !BCrypt.checkpw(password, user.getPassword()));
+            // 校验 MFA 动态口令
+            validateMfa(tenantId, username, user.getMfaSecret(), loginBody.getMfaCode());
             // 此处可根据登录用户的数据不同 自行创建 loginUser
             return loginService.buildLoginUser(user);
         });
@@ -118,6 +122,27 @@ public class PasswordAuthStrategy implements IAuthStrategy {
             throw new UserException("user.blocked", username);
         }
         return user;
+    }
+
+    /**
+     * 校验 MFA 动态验证码
+     *
+     * @param tenantId  租户ID
+     * @param username  用户名
+     * @param mfaSecret MFA密钥
+     * @param mfaCode   MFA动态验证码
+     */
+    private void validateMfa(String tenantId, String username, String mfaSecret, String mfaCode) {
+        if (StringUtils.isNotBlank(mfaSecret)) {
+            if (StringUtils.isBlank(mfaCode)) {
+                loginService.recordLogininfor(tenantId, username, Constants.LOGIN_FAIL, "请输入MFA验证码");
+                throw new ServiceException("请输入MFA验证码");
+            }
+            if (!MfaUtils.verifyCode(mfaSecret, mfaCode)) {
+                loginService.recordLogininfor(tenantId, username, Constants.LOGIN_FAIL, "MFA验证码错误或已失效");
+                throw new ServiceException("MFA验证码错误或已失效，请重新输入");
+            }
+        }
     }
 
 }

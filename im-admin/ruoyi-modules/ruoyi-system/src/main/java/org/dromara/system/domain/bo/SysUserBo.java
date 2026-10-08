@@ -108,6 +108,11 @@ public class SysUserBo extends BaseEntity {
      */
     private String excludeUserIds;
 
+    /**
+     * MFA密钥
+     */
+    private String mfaSecret;
+
     public SysUserBo(Long userId) {
         this.userId = userId;
     }

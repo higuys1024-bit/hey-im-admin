@@ -21,6 +21,12 @@
           <template #prefix><svg-icon icon-class="password" class="el-input__icon input-icon" /></template>
         </el-input>
       </el-form-item>
+      <el-form-item prop="mfaCode">
+        <el-input v-model="loginForm.mfaCode" type="text" size="large" auto-complete="off" placeholder="MFA验证码 (6位动态口令)"
+          maxlength="6" @keyup.enter="handleLogin">
+          <template #prefix><svg-icon icon-class="validCode" class="el-input__icon input-icon" /></template>
+        </el-input>
+      </el-form-item>
       <el-form-item v-if="captchaEnabled" prop="code">
         <el-input v-model="loginForm.code" size="large" auto-complete="off" placeholder="验证码" style="width: 63%"
           @keyup.enter="handleLogin">
@@ -60,13 +66,18 @@ const loginForm = ref<LoginData>({
   password: '',
   rememberMe: false,
   code: '',
-  uuid: ''
+  uuid: '',
+  mfaCode: ''
 } as LoginData);
 
 const loginRules: ElFormRules = {
   tenantId: [{ required: true, trigger: 'blur', message: '请输入您的租户编号' }],
   username: [{ required: true, trigger: 'blur', message: '请输入您的账号' }],
   password: [{ required: true, trigger: 'blur', message: '请输入您的密码' }],
+  mfaCode: [
+    { required: true, trigger: 'blur', message: '请输入6位MFA验证码' },
+    { pattern: /^\d{6}$/, trigger: 'blur', message: 'MFA验证码必须为6位数字' }
+  ],
   code: [{ required: true, trigger: 'change', message: '请输入验证码' }]
 };
 

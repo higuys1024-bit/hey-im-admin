@@ -24,6 +24,7 @@ export interface LoginData {
   source?: string;
   code?: string;
   uuid?: string;
+  mfaCode?: string;
   clientId: string;
   grantType: string;
 }

@@ -219,4 +219,12 @@ public interface ISysUserService {
      * @return 结果
      */
     List<SysUserVo> selectUserListByDept(Long deptId);
+
+    /**
+     * 重置并生成用户 MFA 密钥
+     *
+     * @param userId 用户ID
+     * @return 新生成的 MFA 密钥
+     */
+    String resetMfaSecret(Long userId);
 }

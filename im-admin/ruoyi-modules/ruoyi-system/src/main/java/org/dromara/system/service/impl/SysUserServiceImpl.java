@@ -22,10 +22,12 @@ import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.mfa.MfaUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.common.tenant.helper.TenantHelper;
 import org.dromara.system.domain.*;
 import org.dromara.system.domain.bo.SysUserBo;
 import org.dromara.system.domain.vo.SysPostVo;
@@ -305,6 +307,9 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
     @Transactional(rollbackFor = Exception.class)
     public int insertUser(SysUserBo user) {
         SysUser sysUser = MapstructUtils.convert(user, SysUser.class);
+        if (StringUtils.isBlank(sysUser.getMfaSecret())) {
+            sysUser.setMfaSecret(MfaUtils.generateSecret());
+        }
         // 新增用户信息
         int rows = baseMapper.insert(sysUser);
         user.setUserId(sysUser.getUserId());
@@ -327,6 +332,9 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
         user.setUpdateBy(0L);
         SysUser sysUser = MapstructUtils.convert(user, SysUser.class);
         sysUser.setTenantId(tenantId);
+        if (StringUtils.isBlank(sysUser.getMfaSecret())) {
+            sysUser.setMfaSecret(MfaUtils.generateSecret());
+        }
         return baseMapper.insert(sysUser) > 0;
     }
 
@@ -701,5 +709,24 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
             .eq(SysUser::getStatus, UserConstants.USER_NORMAL)
             .in(SysUser::getDeptId, deptIds));
         return BeanUtil.copyToList(list, UserDTO.class);
+    }
+
+    /**
+     * 重置并生成用户 MFA 密钥
+     *
+     * @param userId 用户ID
+     * @return 新生成的 MFA 密钥
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String resetMfaSecret(Long userId) {
+        SysUser user = baseMapper.selectById(userId);
+        if (user == null) {
+            throw new ServiceException("用户不存在");
+        }
+        String newSecret = MfaUtils.generateSecret();
+        user.setMfaSecret(newSecret);
+        baseMapper.updateById(user);
+        return newSecret;
     }
 }

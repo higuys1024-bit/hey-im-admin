@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +50,7 @@ public class ImUserServiceImpl implements IImUserService {
 
     private final ImRedisMQTemplate redisMQTemplate;
     private final ImUserMapper baseMapper;
+    private final ImIpRegionCacheService ipRegionCacheService;
 
     /**
      * 查询用户
@@ -79,11 +81,33 @@ public class ImUserServiceImpl implements IImUserService {
     }
 
     /**
-     * 根据最后登录IP离线解析用户所在地址，填充到VO的location字段
+     * 根据最后登录IP解析用户所在地址（走二级缓存），填充到VO的location字段
      */
     private void fillLocation(ImUserVo vo) {
         if (vo != null && StringUtils.isNotBlank(vo.getLastLoginIp())) {
-            vo.setLocation(RegionUtils.getCityInfo(vo.getLastLoginIp()));
+            vo.setLocation(ipRegionCacheService.getRegion(vo.getLastLoginIp()));
+        }
+    }
+
+    /**
+     * 批量填充列表中所有用户的地址（利用 L1+L2 二级缓存，杜绝循环级联查）
+     */
+    private void batchFillLocation(List<ImUserVo> records) {
+        if (records == null || records.isEmpty()) {
+            return;
+        }
+        Set<String> ips = records.stream()
+            .map(ImUserVo::getLastLoginIp)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toSet());
+        if (ips.isEmpty()) {
+            return;
+        }
+        Map<String, String> regionMap = ipRegionCacheService.getRegions(ips);
+        for (ImUserVo vo : records) {
+            if (StringUtils.isNotBlank(vo.getLastLoginIp())) {
+                vo.setLocation(regionMap.getOrDefault(vo.getLastLoginIp(), "未知"));
+            }
         }
     }
 
@@ -99,7 +123,7 @@ public class ImUserServiceImpl implements IImUserService {
         LambdaQueryWrapper<ImUser> wrapper = buildQueryWrapper(bo);
         Page<ImUserVo> result = baseMapper.selectVoPage(pageQuery.build(), wrapper);
         if (result.getRecords() != null) {
-            result.getRecords().forEach(this::fillLocation);
+            batchFillLocation(result.getRecords());
         }
         return TableDataInfo.build(result);
     }
@@ -114,7 +138,7 @@ public class ImUserServiceImpl implements IImUserService {
     public List<ImUserVo> queryList(ImUserBo bo) {
         LambdaQueryWrapper<ImUser> wrapper = buildQueryWrapper(bo);
         List<ImUserVo> list = baseMapper.selectVoList(wrapper);
-        list.forEach(this::fillLocation);
+        batchFillLocation(list);
         return list;
     }
 

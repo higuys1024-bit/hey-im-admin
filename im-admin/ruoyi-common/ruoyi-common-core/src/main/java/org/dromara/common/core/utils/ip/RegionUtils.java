@@ -139,7 +139,8 @@ public class RegionUtils {
             return offlineResult;
         }
 
-        // 5. 省市信息缺失 → 触发异步在线补充，本次调用先返回离线结果（ISP兜底）
+        // 5. 省市信息缺失 → 先将离线兜底结果写入本地缓存（防止高并发/列表遍历重复穿透），再异步尝试在线补充
+        LOCAL_CACHE.put(ip, StrUtil.isNotBlank(offlineResult) ? offlineResult : "未知");
         final String ipFinal = ip;
         final String fallback = offlineResult;
         CompletableFuture.runAsync(() -> {

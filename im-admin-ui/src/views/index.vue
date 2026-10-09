@@ -62,6 +62,36 @@
           </div>
         </el-card>
       </el-col>
+      <el-col :span="6">
+        <el-card class="statistics-card">
+          <div class="statistics-item">
+            <div class="statistics-icon" style="background-color: #13C2C2;">
+              <el-icon size="24">
+                <Finished />
+              </el-icon>
+            </div>
+            <div class="statistics-content">
+              <div class="statistics-title">今日签到用户数</div>
+              <div class="statistics-value">{{ todayCheckinCount }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="statistics-card">
+          <div class="statistics-item">
+            <div class="statistics-icon" style="background-color: #722ED1;">
+              <el-icon size="24">
+                <Message />
+              </el-icon>
+            </div>
+            <div class="statistics-content">
+              <div class="statistics-title">今日发消息用户数</div>
+              <div class="statistics-value">{{ todayMsgUserCount }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
     </el-row>
 
     <!-- 统计图表 -->
@@ -96,6 +126,37 @@
           </el-card>
         </el-col>
       </el-row>
+
+      <el-row :gutter="20" style="margin-top: 20px;">
+        <el-col :span="12">
+          <el-card>
+            <template #header>
+              <span>每日签到用户数</span>
+              <el-select v-model="checkinSelectedDays" @change="loadCheckinChartData"
+                style="width: 100px; float: right;" size="small">
+                <el-option label="7天" :value="7"></el-option>
+                <el-option label="15天" :value="15"></el-option>
+                <el-option label="30天" :value="30"></el-option>
+              </el-select>
+            </template>
+            <div ref="checkinChartContainer" style="width: 100%; height: 300px;"></div>
+          </el-card>
+        </el-col>
+        <el-col :span="12">
+          <el-card>
+            <template #header>
+              <span>每日发消息用户数</span>
+              <el-select v-model="msgUserSelectedDays" @change="loadMsgUserChartData"
+                style="width: 100px; float: right;" size="small">
+                <el-option label="7天" :value="7"></el-option>
+                <el-option label="15天" :value="15"></el-option>
+                <el-option label="30天" :value="30"></el-option>
+              </el-select>
+            </template>
+            <div ref="msgUserChartContainer" style="width: 100%; height: 300px;"></div>
+          </el-card>
+        </el-col>
+      </el-row>
     </div>
   </div>
 </template>
@@ -105,9 +166,11 @@ import { ref, onMounted, nextTick, computed } from 'vue';
 import * as echarts from 'echarts';
 import { getDailyMessageCount } from '@/api/im/privateMessage';
 import { getDailyGroupMessageCount } from '@/api/im/groupMessage';
-import { getDailyRegistrationCount, getTotalUserCount, getActiveUserStats } from '@/api/im/user';
+import { getDailyRegistrationCount, getTotalUserCount, getActiveUserStats,
+  getTodayCheckinUserCount, getDailyCheckinUserCount,
+  getTodayMessageUserCount, getDailyMessageUserCount } from '@/api/im/user';
 import { getTotalGroupCount } from '@/api/im/group';
-import { User, ChatDotRound, Timer, Calendar, Clock } from '@element-plus/icons-vue';
+import { User, ChatDotRound, Timer, Calendar, Clock, Finished, Message } from '@element-plus/icons-vue';
 
 const chartContainer = ref<HTMLElement>();
 const selectedDays = ref(7);
@@ -116,6 +179,20 @@ let chartInstance: echarts.ECharts | null = null;
 const registrationChartContainer = ref<HTMLElement>();
 const registrationSelectedDays = ref(7);
 let registrationChartInstance: echarts.ECharts | null = null;
+
+// 每日签到用户数图表
+const checkinChartContainer = ref<HTMLElement>();
+const checkinSelectedDays = ref(7);
+let checkinChartInstance: echarts.ECharts | null = null;
+
+// 每日发消息用户数图表
+const msgUserChartContainer = ref<HTMLElement>();
+const msgUserSelectedDays = ref(7);
+let msgUserChartInstance: echarts.ECharts | null = null;
+
+// 今日签到用户数 / 今日发消息用户数
+const todayCheckinCount = ref(0);
+const todayMsgUserCount = ref(0);
 
 // 总用户数量
 const totalUserCount = ref(0);
@@ -165,6 +242,44 @@ const loadActiveUserStats = async () => {
   }
 };
 
+
+// 加载今日签到用户数
+const loadTodayCheckinCount = async () => {
+  try {
+    const response = await getTodayCheckinUserCount();
+    todayCheckinCount.value = response.data || 0;
+  } catch (error) {
+    console.error('加载今日签到用户数失败:', error);
+    todayCheckinCount.value = 0;
+  }
+};
+
+// 加载今日发消息用户数
+const loadTodayMsgUserCount = async () => {
+  try {
+    const response = await getTodayMessageUserCount();
+    todayMsgUserCount.value = response.data || 0;
+  } catch (error) {
+    console.error('加载今日发消息用户数失败:', error);
+    todayMsgUserCount.value = 0;
+  }
+};
+
+// 通用：将后端 [{date,count}] 数据按天补齐成连续 days 天的序列
+const buildDailySeries = (data: any[], days: number) => {
+  const dates: string[] = [];
+  const counts: number[] = [];
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    dates.push(dateStr);
+    const dayData = (data || []).find(item => String(item.date).substring(0, 10) === dateStr);
+    counts.push(dayData ? parseInt(dayData.count) : 0);
+  }
+  return { dates, counts };
+};
 
 // 加载图表数据
 const loadChartData = async () => {
@@ -380,8 +495,12 @@ onMounted(() => {
   loadTotalUserCount();
   loadTotalGroupCount();
   loadActiveUserStats();
+  loadTodayCheckinCount();
+  loadTodayMsgUserCount();
   initChart();
   initRegistrationChart();
+  initCheckinChart();
+  initMsgUserChart();
 });
 
 // 初始化用户注册统计图表
@@ -450,6 +569,87 @@ const initRegistrationChart = async () => {
 
     // 加载初始数据
     await loadRegistrationChartData();
+  }
+};
+
+// 通用：构建单折线图配置
+const buildSingleLineOption = (title: string, yName: string, seriesName: string, color: string, rgb: string) => ({
+  title: { text: title, left: 'center' },
+  tooltip: {
+    trigger: 'axis',
+    formatter: (params: any) => {
+      const data = params[0];
+      return `${data.name}<br/>${seriesName}: ${data.value}`;
+    }
+  },
+  xAxis: {
+    type: 'category',
+    data: [] as string[],
+    axisLabel: { formatter: (value: string) => value.substring(5) }
+  },
+  yAxis: { type: 'value', name: yName },
+  series: [{
+    name: seriesName,
+    type: 'line',
+    data: [] as number[],
+    smooth: true,
+    itemStyle: { color },
+    areaStyle: {
+      color: {
+        type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [
+          { offset: 0, color: `rgba(${rgb}, 0.3)` },
+          { offset: 1, color: `rgba(${rgb}, 0.1)` }
+        ]
+      }
+    }
+  }],
+  grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }
+});
+
+// 加载每日签到用户数图表数据
+const loadCheckinChartData = async () => {
+  try {
+    const response = await getDailyCheckinUserCount(checkinSelectedDays.value);
+    const { dates, counts } = buildDailySeries(response.data, checkinSelectedDays.value);
+    checkinChartInstance?.setOption({ xAxis: { data: dates }, series: [{ data: counts }] });
+  } catch (error) {
+    console.error('加载每日签到用户数图表数据失败:', error);
+  }
+};
+
+// 初始化每日签到用户数图表
+const initCheckinChart = async () => {
+  await nextTick();
+  if (checkinChartContainer.value) {
+    checkinChartInstance = echarts.init(checkinChartContainer.value);
+    checkinChartInstance.setOption(
+      buildSingleLineOption('每日签到用户数趋势', '签到用户数', '签到用户', '#13C2C2', '19, 194, 194')
+    );
+    await loadCheckinChartData();
+  }
+};
+
+// 加载每日发消息用户数图表数据
+const loadMsgUserChartData = async () => {
+  try {
+    const response = await getDailyMessageUserCount(msgUserSelectedDays.value);
+    const { dates, counts } = buildDailySeries(response.data, msgUserSelectedDays.value);
+    msgUserChartInstance?.setOption({ xAxis: { data: dates }, series: [{ data: counts }] });
+  } catch (error) {
+    console.error('加载每日发消息用户数图表数据失败:', error);
+  }
+};
+
+// 初始化每日发消息用户数图表
+const initMsgUserChart = async () => {
+  await nextTick();
+  if (msgUserChartContainer.value) {
+    msgUserChartInstance = echarts.init(msgUserChartContainer.value);
+    msgUserChartInstance.setOption(
+      buildSingleLineOption('每日发消息用户数趋势', '发消息用户数', '发消息用户', '#722ED1', '114, 46, 209')
+    );
+    await loadMsgUserChartData();
   }
 };
 </script>

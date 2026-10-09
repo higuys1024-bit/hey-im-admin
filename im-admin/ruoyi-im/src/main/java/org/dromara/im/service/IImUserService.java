@@ -119,4 +119,30 @@ public interface IImUserService {
      */
     Long getMonthlyActiveUserCount();
 
+    /**
+     * 今日签到用户数
+     * @return 今日签到用户数
+     */
+    Long getTodayCheckinUserCount();
+
+    /**
+     * 按天统计签到用户数
+     * @param days 统计天数
+     * @return 每日签到用户数
+     */
+    List<Map<String, Object>> getDailyCheckinUserCount(Integer days);
+
+    /**
+     * 今日发送消息的用户数（私聊+群聊去重）
+     * @return 今日发消息用户数
+     */
+    Long getTodayMessageUserCount();
+
+    /**
+     * 按天统计发送消息的用户数（私聊+群聊去重）
+     * @param days 统计天数
+     * @return 每日发消息用户数
+     */
+    List<Map<String, Object>> getDailyMessageUserCount(Integer days);
+
 }

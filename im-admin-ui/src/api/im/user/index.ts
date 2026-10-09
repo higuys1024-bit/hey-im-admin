@@ -130,3 +130,47 @@ export const getActiveUserStats = (): AxiosPromise<any> => {
     method: 'get'
   });
 };
+
+/**
+ * 今日签到用户数
+ */
+export const getTodayCheckinUserCount = (): AxiosPromise<number> => {
+  return request({
+    url: '/im/user/todayCheckinUserCount',
+    method: 'get'
+  });
+};
+
+/**
+ * 按天统计签到用户数
+ * @param days 统计天数
+ */
+export const getDailyCheckinUserCount = (days?: number): AxiosPromise<any[]> => {
+  return request({
+    url: '/im/user/dailyCheckinUserCount',
+    method: 'get',
+    params: { days }
+  });
+};
+
+/**
+ * 今日发送消息的用户数（私聊+群聊去重）
+ */
+export const getTodayMessageUserCount = (): AxiosPromise<number> => {
+  return request({
+    url: '/im/user/todayMessageUserCount',
+    method: 'get'
+  });
+};
+
+/**
+ * 按天统计发送消息的用户数（私聊+群聊去重）
+ * @param days 统计天数
+ */
+export const getDailyMessageUserCount = (days?: number): AxiosPromise<any[]> => {
+  return request({
+    url: '/im/user/dailyMessageUserCount',
+    method: 'get',
+    params: { days }
+  });
+};

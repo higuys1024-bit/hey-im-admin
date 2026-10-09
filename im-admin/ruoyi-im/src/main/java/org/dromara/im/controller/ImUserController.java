@@ -154,4 +154,44 @@ public class ImUserController extends BaseController {
         stats.put("monthlyActive", userService.getMonthlyActiveUserCount());
         return R.ok(stats);
     }
+
+    /**
+     * 今日签到用户数
+     */
+    @SaCheckPermission("im:user:list")
+    @GetMapping("/todayCheckinUserCount")
+    public R<Long> getTodayCheckinUserCount() {
+        return R.ok(userService.getTodayCheckinUserCount());
+    }
+
+    /**
+     * 按天统计签到用户数
+     *
+     * @param days 统计天数，默认7天
+     */
+    @SaCheckPermission("im:user:list")
+    @GetMapping("/dailyCheckinUserCount")
+    public R<List<Map<String, Object>>> getDailyCheckinUserCount(@RequestParam(value = "days", defaultValue = "7") Integer days) {
+        return R.ok(userService.getDailyCheckinUserCount(days));
+    }
+
+    /**
+     * 今日发送消息的用户数（私聊+群聊去重）
+     */
+    @SaCheckPermission("im:user:list")
+    @GetMapping("/todayMessageUserCount")
+    public R<Long> getTodayMessageUserCount() {
+        return R.ok(userService.getTodayMessageUserCount());
+    }
+
+    /**
+     * 按天统计发送消息的用户数（私聊+群聊去重）
+     *
+     * @param days 统计天数，默认7天
+     */
+    @SaCheckPermission("im:user:list")
+    @GetMapping("/dailyMessageUserCount")
+    public R<List<Map<String, Object>>> getDailyMessageUserCount(@RequestParam(value = "days", defaultValue = "7") Integer days) {
+        return R.ok(userService.getDailyMessageUserCount(days));
+    }
 }

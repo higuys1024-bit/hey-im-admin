@@ -24,6 +24,8 @@ import org.dromara.im.domain.dto.ImUserResetPwdDto;
 import org.dromara.im.domain.dto.ImUserUnbanDto;
 import org.dromara.im.domain.vo.ImUserSubordinateVo;
 import org.dromara.im.domain.vo.ImUserVo;
+import org.dromara.im.mapper.ImCheckinRecordMapper;
+import org.dromara.im.mapper.ImPrivateMessageMapper;
 import org.dromara.im.mapper.ImUserMapper;
 import org.dromara.im.mq.ImRedisMQTemplate;
 import org.dromara.im.service.IImUserService;
@@ -50,6 +52,8 @@ public class ImUserServiceImpl implements IImUserService {
 
     private final ImRedisMQTemplate redisMQTemplate;
     private final ImUserMapper baseMapper;
+    private final ImCheckinRecordMapper checkinRecordMapper;
+    private final ImPrivateMessageMapper privateMessageMapper;
 
     /**
      * 查询用户
@@ -292,5 +296,33 @@ public class ImUserServiceImpl implements IImUserService {
         LambdaQueryWrapper<ImUser> wrapper = Wrappers.lambdaQuery();
         wrapper.ge(ImUser::getLastLoginTime, DateUtils.addDays(new Date(), -30));
         return baseMapper.selectCount(wrapper);
+    }
+
+    @Override
+    public Long getTodayCheckinUserCount() {
+        Long count = checkinRecordMapper.getTodayCheckinUserCount();
+        return count == null ? 0L : count;
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailyCheckinUserCount(Integer days) {
+        if (days == null || days <= 0) {
+            days = 7;
+        }
+        return checkinRecordMapper.getDailyCheckinUserCount(days);
+    }
+
+    @Override
+    public Long getTodayMessageUserCount() {
+        Long count = privateMessageMapper.getTodayMessageUserCount();
+        return count == null ? 0L : count;
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailyMessageUserCount(Integer days) {
+        if (days == null || days <= 0) {
+            days = 7;
+        }
+        return privateMessageMapper.getDailyMessageUserCount(days);
     }
 }

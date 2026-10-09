@@ -50,7 +50,6 @@ public class ImUserServiceImpl implements IImUserService {
 
     private final ImRedisMQTemplate redisMQTemplate;
     private final ImUserMapper baseMapper;
-    private final ImIpRegionCacheService ipRegionCacheService;
 
     /**
      * 查询用户
@@ -81,33 +80,30 @@ public class ImUserServiceImpl implements IImUserService {
     }
 
     /**
-     * 根据最后登录IP解析用户所在地址（走二级缓存），填充到VO的location字段
+     * 根据数据库最后登录地区字段填充 location（0ms 读取，历史未填充数据离线解析兜底）
      */
     private void fillLocation(ImUserVo vo) {
-        if (vo != null && StringUtils.isNotBlank(vo.getLastLoginIp())) {
-            vo.setLocation(ipRegionCacheService.getRegion(vo.getLastLoginIp()));
+        if (vo == null) {
+            return;
+        }
+        if (StringUtils.isNotBlank(vo.getLastLoginRegion())) {
+            vo.setLocation(vo.getLastLoginRegion());
+        } else if (StringUtils.isNotBlank(vo.getLastLoginIp())) {
+            vo.setLocation(RegionUtils.getCityInfo(vo.getLastLoginIp()));
+        } else {
+            vo.setLocation("未知");
         }
     }
 
     /**
-     * 批量填充列表中所有用户的地址（利用 L1+L2 二级缓存，杜绝循环级联查）
+     * 批量填充列表中所有用户的地址（直接读取数据库 last_login_region 字段，彻底免去 Redis 缓存与级联开销）
      */
     private void batchFillLocation(List<ImUserVo> records) {
         if (records == null || records.isEmpty()) {
             return;
         }
-        Set<String> ips = records.stream()
-            .map(ImUserVo::getLastLoginIp)
-            .filter(StringUtils::isNotBlank)
-            .collect(Collectors.toSet());
-        if (ips.isEmpty()) {
-            return;
-        }
-        Map<String, String> regionMap = ipRegionCacheService.getRegions(ips);
         for (ImUserVo vo : records) {
-            if (StringUtils.isNotBlank(vo.getLastLoginIp())) {
-                vo.setLocation(regionMap.getOrDefault(vo.getLastLoginIp(), "未知"));
-            }
+            fillLocation(vo);
         }
     }
 

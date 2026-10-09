@@ -83,7 +83,12 @@ public class ImUserVo {
     private String lastLoginIp;
 
     /**
-     * 地址（由最后登录IP离线解析得到，不对应数据库字段）
+     * 最后登录地区
+     */
+    private String lastLoginRegion;
+
+    /**
+     * 地址（前端页面及Excel导出绑定字段）
      */
     @ExcelProperty(value = "地址")
     private String location;
